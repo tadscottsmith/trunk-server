@@ -11,10 +11,12 @@ const shouldUseRelativeAssetPaths = paths.servedPath === './'
 // Note: defined here because it will be used more than once.
 const cssFilename = 'static/css/[name].[contenthash:8].css'
 const cssClassName = isDev ? '[path][name]__[local]--[hash:base64:5]' : '[hash:base64:5]'
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const extractLess = new ExtractTextPlugin({
-  filename: cssFilename,
-  disable: true
+
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+//const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const extractLess = new MiniCssExtractPlugin({
+  filename: cssFilename
 })
 
 // Options for autoPrefixer
@@ -58,7 +60,7 @@ module.exports = {
 			exclude: [
 				path.resolve(paths.appSrc, 'components'),
 			],
-			use: extractLess.extract({
+			use: extractLess.loader({
 				fallback: {
 					loader: 'style-loader',
 					options: {

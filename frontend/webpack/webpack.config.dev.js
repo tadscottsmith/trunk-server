@@ -2,7 +2,7 @@ var path = require("path")
 var webpack = require("webpack")
 var assetsPath = path.join(__dirname, "..", "public", "assets")
 var publicPath = "/assets/"
-const configMerge = require('webpack-merge')
+const { merge }  = require('webpack-merge')
 const commonConfig = require('./webpack.config.common')
 
 const paths = require('./paths')
@@ -10,7 +10,7 @@ const paths = require('./paths')
 // This is the development configuration.
 // It is focused on developer experience and fast rebuilds.
 // The production configuration is different and lives in a separate file.
-module.exports = configMerge(commonConfig, {
+module.exports = merge(commonConfig, {
 	name: "browser",
 	mode: 'development',
 	devtool: "eval-source-map",
