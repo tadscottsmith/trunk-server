@@ -92,6 +92,20 @@ if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3
 
     }
   }
+
+  patches = [];
+
+  let req_patches;
+  req_patches = req.body.patches;
+
+  if(typeof req_patches != "undefined"){
+    var split_patches = req_patches.replace("[","").replace("]","").split(",");
+    
+    for (var patch in split_patches){
+      patches.push(split_patches[patch]);
+    } 
+  }
+
   // Add in an API Key check
 
   let errorCount = parseInt(req.body.error_count);

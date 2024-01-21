@@ -2,6 +2,7 @@
 const { ObjectId } = require('mongodb');
 var { callModel: Call } = require("../models/call");
 const Group = require("../models/group");
+const talkgroup = require('../models/talkgroup');
 
 var defaultNumResults = 50;
 
@@ -20,6 +21,7 @@ const build_call_list = (items) => {
             srcList: item.srcList,
             star: item.star,
             freq: item.freq,
+            patches: item.patches,
             len: Math.round(item.len)
         };
         calls.push(call);
@@ -38,6 +40,7 @@ async function get_calls(query, numResults, middleDate, res) {
         time: true,
         srcList: true,
         freq: true,
+        patches: true,
         star: true,
         len: true,
         url: true
@@ -141,24 +144,30 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                     var codeArray = code.split(',').map(function (item) {
                         return parseInt(item, 10);
                     });
-                    filter.talkgroupNum = {
-                        $in: codeArray
-                    };
+
+                    if (start_time && (direction == 'newer')) {
+                        filter = { $and: [{ time: { $gt: start } }, { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] }] };
+                    } else if (start_time) {
+                        filter = { $and: [{ time: { $lt: start } }, { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] }] };
+                    } else {
+                        filter = { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] };
+                    }
+
                 }
             }
 
         }
-    } 
+    }
 
-        if (direction=="middle") {
-            query['filter'] = filter;
-            get_calls(query, numResults, start, res);
-        } else {
-            query['filter'] = filter;
-            get_calls(query, numResults, false, res);
-        }
+    if (direction == "middle") {
+        query['filter'] = filter;
+        get_calls(query, numResults, start, res);
+    } else {
+        query['filter'] = filter;
+        get_calls(query, numResults, false, res);
+    }
 
-    
+
 }
 
 
@@ -211,6 +220,7 @@ function package_call(item) {
         path: item.path,
         name: item.name,
         freq: item.freq,
+        patches: item.patches,
         srcList: item.srcList,
         star: item.star,
         len: Math.round(item.len)

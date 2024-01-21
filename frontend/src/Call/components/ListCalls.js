@@ -39,6 +39,7 @@ const ListCalls = (props) => {
             <Table.HeaderCell> </Table.HeaderCell>
               <Table.HeaderCell>Len</Table.HeaderCell>
               <Table.HeaderCell>Talkgroup</Table.HeaderCell>
+              <Table.HeaderCell>Patches</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>
               <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
             </Table.Row>

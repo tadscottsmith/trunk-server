@@ -24,6 +24,7 @@ function CallInfoPane(props) {
   let talkgroupNum = "-";
   let header = "Call Info"
   let title = ""
+  let patches = "";
   const currentCall = props.call ? props.call : false;
   const { callLink, callDownload, callTweet } = useCallLink(props.call)
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
@@ -48,6 +49,7 @@ function CallInfoPane(props) {
       const freq = currentCall.freq / 1000000;
       callFreq = Math.round(freq * 1000) / 1000;
     }
+    patches = currentCall.patches;
     srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
@@ -102,7 +104,10 @@ function CallInfoPane(props) {
         <Statistic.Label>Talkgroup</Statistic.Label>
         <Statistic.Value>{talkgroupNum}</Statistic.Value>
       </Statistic>
-
+      <Statistic size='small'>
+                <Statistic.Label>Patches</Statistic.Label>
+                <Statistic.Value>{patches}</Statistic.Value>
+      </Statistic>
       <List divided verticalAlign='middle'>
         <List.Item>
           <Icon name="wait" />
