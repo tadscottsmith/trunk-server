@@ -90,6 +90,27 @@ const CallItem = (props) => {
     talkgroup = talkgroups.talkgroups[call.talkgroupNum].description;
   }
 
+  var talkgroupPatches = call.talkgroupNum;
+
+  if(typeof call.patches != "undefined" && call.patches.length > 1){
+    for (var patch in call.patches){
+      var patchedtalkgroupNum = call.patches[patch];
+   
+      if(patchedtalkgroupNum == call.talkgroupNum){
+        continue;
+      }
+
+      talkgroupPatches = talkgroupPatches + ",\n" + patchedtalkgroupNum;
+      
+      if ((typeof talkgroups== 'undefined') || (typeof talkgroups.talkgroups[call.talkgroupNum] == 'undefined')) {
+        talkgroup = talkgroup + ",\n" +  patchedtalkgroupNum;
+      } else {
+        talkgroup = talkgroup + ",\n" + talkgroups.talkgroups[patchedtalkgroupNum].description;
+      } 
+    }
+  }
+
+
   const cirlceStyle = {width:"4px",
               margin:"6px",
               height: "4px",
@@ -104,12 +125,16 @@ const CallItem = (props) => {
     playStatus = (<div style={cirlceStyle}/>)
   } 
 
+  const talkgroupStyle = {'white-space': "pre-wrap"};
+
   return (
     <Table.Row draggable="true" onClick={(e) => props.onClick({ call: call }, e)} {...rowSelected} onDragStart={onDragStart} data-callid={call._id}>
       <Table.Cell>{playStatus}</Table.Cell>
       <Table.Cell>{call.len}</Table.Cell>
-      <Table.Cell>{talkgroup}</Table.Cell>
-      <Table.Cell>{time.toLocaleTimeString()}</Table.Cell>
+      <Table.Cell style={talkgroupStyle}>{talkgroup}</Table.Cell>
+      <Table.Cell>{call.srcList[0].src}</Table.Cell>
+      <Table.Cell style={talkgroupStyle}>{talkgroupPatches}</Table.Cell>
+      <Table.Cell>{`${time.toLocaleTimeString()} ${time.toLocaleDateString() !== new Date().toLocaleDateString() ? time.getMonth() + 1 + '/' + time.getDate() : ''}`}</Table.Cell>
       <Table.Cell onMouseEnter={() => setStarVisible(true)} onMouseLeave={() => setStarVisible(false)} onClick={handleStarClicked}>{starButton}</Table.Cell>
     </Table.Row>
   );

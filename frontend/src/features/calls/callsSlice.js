@@ -103,6 +103,10 @@ const initialState = {
         params["filter-type"] = "talkgroup";
         params["filter-code"] = filterTalkgroups;
         break;
+        case 3:
+        params["filter-type"] = "unit";
+        params["filter-code"] = filterTalkgroups;
+        break;      
         default:
         case 0:
       }

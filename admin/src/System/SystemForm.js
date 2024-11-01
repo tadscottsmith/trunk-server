@@ -26,6 +26,7 @@ const SystemForm = (props) => {
   const [showScreenName, setShowScreenName] = useState(false);
   const [allowContact, setAllowContact] = useState(true);
   const [ignoreUnknownTalkgroup, setIgnoreUnknownTalkgroup] = useState(false);
+  const [autoPopulateTalkgroup, setAutoPopulateTalkgroup] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [shortNameError, setShortNameError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
@@ -48,6 +49,7 @@ const SystemForm = (props) => {
       setShowScreenName(props.system.showScreenName);
       setAllowContact(props.system.allowContact);
       setIgnoreUnknownTalkgroup(props.system.ignoreUnknownTalkgroup);
+      setAutoPopulateTalkgroup(props.system.autoPopulateTalkgroup);
     }
   }, [props.system, props.isEditing]);
 
@@ -143,6 +145,11 @@ const SystemForm = (props) => {
   const handleTalkgroupCheckboxChange = () => {
     setIgnoreUnknownTalkgroup((current) => !current);
   }
+
+  const handleAutoPopulateTalkgroupCheckboxChange = () => {
+    setAutoPopulateTalkgroup((current) => !current);
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
     let inputError = checkInputs();
@@ -159,7 +166,8 @@ const SystemForm = (props) => {
         country,
         showScreenName,
         allowContact,
-        ignoreUnknownTalkgroup
+        ignoreUnknownTalkgroup,
+        autoPopulateTalkgroup
       };
       props.onSubmit(system);
     }
@@ -292,6 +300,12 @@ const SystemForm = (props) => {
             onChange={handleTalkgroupCheckboxChange}
             checked={ignoreUnknownTalkgroup}
             label="Ignore Unknown Talkgroups" />
+        </Form.Field>
+        <Form.Field>
+          <Checkbox
+            onChange={handleAutoPopulateTalkgroupCheckboxChange}
+            checked={autoPopulateTalkgroup}
+            label="Automatically Populate Talkgroups" />
         </Form.Field>
         <Divider horizontal />
         <Form.TextArea

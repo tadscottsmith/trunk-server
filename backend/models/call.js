@@ -19,6 +19,7 @@ var callSchema = mongoose.Schema({
   emergency: Boolean,
   path: String,
   len: Number,
+  patches: [Number],
   star: {
 		type: Number,
 		default: 0

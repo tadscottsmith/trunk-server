@@ -100,6 +100,7 @@ exports.listAllSystems = async function (req, res, next) {
       showScreenName,
       allowContact,
       ignoreUnknownTalkgroup,
+      autoPopulateTalkgroup,
       lastActive,
       active
     }) => ({
@@ -116,6 +117,7 @@ exports.listAllSystems = async function (req, res, next) {
       showScreenName,
       allowContact,
       ignoreUnknownTalkgroup,
+      autoPopulateTalkgroup,
       lastActive,
       active
     }))(obj);
@@ -163,7 +165,8 @@ exports.listSystems = async function (req, res, next) {
       key,
       showScreenName,
       allowContact,
-      ignoreUnknownTalkgroup
+      ignoreUnknownTalkgroup,
+      autoPopulateTalkgroup
     }) => ({
       name,
       shortName,
@@ -177,7 +180,8 @@ exports.listSystems = async function (req, res, next) {
       key,
       showScreenName,
       allowContact,
-      ignoreUnknownTalkgroup
+      ignoreUnknownTalkgroup,
+      autoPopulateTalkgroup
     }))(obj);
     if (obj.showScreenName) {
       rObj.screenName = req.user.screenName;
@@ -364,6 +368,7 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.showScreenName = res.locals.showScreenName;
   res.locals.system.allowContact = res.locals.allowContact;
   res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
+  res.locals.system.autoPopulateTalkgroup = res.locals.autoPopulateTalkgroup;
 
 
   await res.locals.system.save().catch(err => {
@@ -387,7 +392,8 @@ exports.updateSystem = async function (req, res, next) {
     key,
     showScreenName,
     allowContact,
-    ignoreUnknownTalkgroup
+    ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup
   }) => ({
     name,
     shortName,
@@ -401,7 +407,8 @@ exports.updateSystem = async function (req, res, next) {
     key,
     showScreenName,
     allowContact,
-    ignoreUnknownTalkgroup
+    ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup
   }))(res.locals.system);
   returnSys.id = res.locals.system._id;
   res.json(returnSys);
@@ -416,6 +423,7 @@ exports.validateSystem = async function (req, res, next) {
   try {
     res.locals.showScreenName = req.body.showScreenName;
     res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup;
+    res.locals.autoPopulateTalkgroup = req.body.autoPopulateTalkgroup;
     res.locals.allowContact = req.body.allowContact;
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
@@ -554,7 +562,8 @@ exports.createSystem = async function (req, res, next) {
     country,
     showScreenName,
     allowContact,
-    ignoreUnknownTalkgroup
+    ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup
   }) => ({
     name,
     shortName,
@@ -566,7 +575,8 @@ exports.createSystem = async function (req, res, next) {
     country,
     showScreenName,
     allowContact,
-    ignoreUnknownTalkgroup
+    ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup
   }))(res.locals);
   system.key = key;
   system.userId = new mongoose.Types.ObjectId(req.user._id);
@@ -594,6 +604,7 @@ exports.createSystem = async function (req, res, next) {
     showScreenName,
     allowContact,
     ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup,
     key
   }) => ({
     name,
@@ -608,6 +619,7 @@ exports.createSystem = async function (req, res, next) {
     showScreenName,
     allowContact,
     ignoreUnknownTalkgroup,
+    autoPopulateTalkgroup,
     key
   }))(newSys);
   returnSys.id = newSys._id;

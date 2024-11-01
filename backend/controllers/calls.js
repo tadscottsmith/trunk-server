@@ -2,6 +2,9 @@
 const { ObjectId } = require('mongodb');
 var { callModel: Call } = require("../models/call");
 const Group = require("../models/group");
+const talkgroup = require('../models/talkgroup');
+
+var util = require("util");
 
 var defaultNumResults = 50;
 
@@ -9,7 +12,7 @@ var channels = {};
 
 const build_call_list = (items) => {
     let calls = [];
-    for (var i=0; i < items.length; i++) {
+    for (var i = 0; i < items.length; i++) {
         const item = items[i];
         call = {
             _id: item._id.toHexString(),
@@ -20,6 +23,7 @@ const build_call_list = (items) => {
             srcList: item.srcList,
             star: item.star,
             freq: item.freq,
+            patches: item.patches,
             len: Math.round(item.len)
         };
         calls.push(call);
@@ -38,6 +42,7 @@ async function get_calls(query, numResults, middleDate, res) {
         time: true,
         srcList: true,
         freq: true,
+        patches: true,
         star: true,
         len: true,
         url: true
@@ -45,7 +50,7 @@ async function get_calls(query, numResults, middleDate, res) {
 
     const sort = { length: -1 };
     try {
-        const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
+        const items = await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
         const refined_items = build_call_list(items);
         calls.push(...refined_items);
 
@@ -55,7 +60,7 @@ async function get_calls(query, numResults, middleDate, res) {
                 $gt: middleDate
             };
 
-            const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
+            const items = await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
             const refined_items = build_call_list(items);
             calls.push(...refined_items);
         }
@@ -105,7 +110,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
 
 
-   if (filter_type) {
+    if (filter_type) {
         if ((filter_type == "group") && code && (code.indexOf(',') == -1)) {
             let o_id
             try {
@@ -141,26 +146,51 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                     var codeArray = code.split(',').map(function (item) {
                         return parseInt(item, 10);
                     });
-                    filter.talkgroupNum = {
-                        $in: codeArray
-                    };
+
+                    if (start_time && (direction == 'newer')) {
+                        filter = { $and: [{ time: { $gt: start } }, { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] }] };
+                    } else if (start_time) {
+                        filter = { $and: [{ time: { $lt: start } }, { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] }] };
+                    } else {
+                        filter = { $or: [{ patches: { $in: codeArray } }, { talkgroupNum: { $in: codeArray } }] };
+                    }
+
+                }
+            }
+            if (filter_type == "unit")  {
+                if (code) {
+                    var codeArray = code.split(',').map(function (item) {
+                        return parseInt(item, 10);
+                    });
+
+                    if (start_time && (direction == 'newer')) {
+                        filter = { $and: [{ time: { $gt: start } }, { 'srcList.src' : { $in: codeArray } } ] };
+                    } else if (start_time) {
+                        filter = { $and: [{ time: { $lt: start } }, { 'srcList.src' : { $in: codeArray } } ] };
+                    } else {
+                        filter = { $or: [{ 'srcList.src' : { $in: codeArray } }] };
+                    }
+
                 }
             }
 
         }
-    } 
+    }
 
-        if (direction=="middle") {
-            query['filter'] = filter;
-            get_calls(query, numResults, start, res);
-        } else {
-            query['filter'] = filter;
-            get_calls(query, numResults, false, res);
-        }
+    if (direction == "middle") {
+        query['filter'] = filter;
+        get_calls(query, numResults, start, res);
+    } else {
+        query['filter'] = filter;
+        get_calls(query, numResults, false, res);
+    }
 
-    
+    //console.warn("Filter: " + util.inspect(query['filter'], false, null));
+
 }
 
+
+//util.inspect(query['filter'], false, null)
 
 exports.get_card = async function (req, res) {
     var objectId = req.params.id;
@@ -178,7 +208,7 @@ exports.get_card = async function (req, res) {
 
     const item = await Call.findById(o_id).exec();
 
-    //console.log(util.inspect(item));
+    console.log(util.inspect(item));
     if (item) {
         var time = new Date(item.time);
         var timeString = time.toLocaleTimeString("en-US");
@@ -211,6 +241,7 @@ function package_call(item) {
         path: item.path,
         name: item.name,
         freq: item.freq,
+        patches: item.patches,
         srcList: item.srcList,
         star: item.star,
         len: Math.round(item.len)
@@ -329,7 +360,7 @@ exports.get_date_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
+    console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
     build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res);
 }
@@ -340,7 +371,7 @@ exports.get_latest_calls = function (req, res) {
     var filter_type = req.query["filter-type"];
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Latest -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type );
+    console.log("[" + short_name + "] Latest -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type );
 
     build_filter(filter_type, filter_code, null, 'older', short_name, 1, starred, res);
 }
@@ -352,7 +383,7 @@ exports.get_next_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
+    console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
     build_filter(filter_type, filter_code, start_time, 'newer', short_name, 1, starred, res);
 }
@@ -363,7 +394,7 @@ exports.get_newer_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type );
+    console.log("[" + short_name + "] Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type );
 
     build_filter(filter_type, filter_code, start_time, 'newer', short_name, defaultNumResults, starred, res);
 }
@@ -374,7 +405,7 @@ exports.get_older_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Older Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
+    console.log("[" + short_name + "] Older Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
     build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res);
 }
@@ -387,7 +418,7 @@ exports.get_iphone_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var start_time = parseInt(req.params.time);
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] iPhone Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
+    console.log("[" + short_name + "] iPhone Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
     build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res);
 }
@@ -397,7 +428,14 @@ exports.get_calls = function (req, res) {
     var filter_type = req.query["filter-type"];
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var short_name = req.params.shortName.toLowerCase();
-    //console.log("[" + short_name + "] Inital Calls -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type);
+    console.log("[" + short_name + "] Inital Calls -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type);
 
     build_filter(filter_type, filter_code, null, 'older', short_name, defaultNumResults, starred, res);
 }
+
+
+
+
+
+
+

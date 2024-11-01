@@ -118,6 +118,7 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
 /*------    SYSTEMS   ----------*/
 app.get('/systems', addSystemClients, systems.get_systems);
 app.post('/:shortName/contact', systems.contact_system);
+app.post('/:shortName/authorize', systems.authorize_system);
 
 /*------    TALKGROUPS   ----------*/
 app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
@@ -200,23 +201,14 @@ function notify_clients(call) {
               sent++;
               client.socket.emit("new message", JSON.stringify(call));
             } else if (client.filterType == "unit") {
-              var codeArray = client.filterCode.split(',');
-              var success = false;
+              var codeArray = client.talkgroupNums;
               for (var j = 0; j < codeArray.length; ++j) {
-                for (var k = 0; k < call.srcList.length; k++) {
-                  if (codeArray[j] == call.srcList[k]) {
-                    sent++;
-                    client.socket.emit("new message", JSON.stringify(call));
-                    success = true;
-                    break;
-                  }
-                }
-                if (success) {
+                if (codeArray[j] == call.talkgroupNum) {
+                  client.socket.emit("new message", JSON.stringify(call));
+                  sent++
                   break;
                 }
               }
-
-
             } else {
               var codeArray = client.talkgroupNums;
               for (var j = 0; j < codeArray.length; ++j) {
@@ -283,6 +275,8 @@ io.sockets.on('connection', function (client) {
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
       }
+      } else if ((data.filterType == "unit") && Array.isArray(data.filterCode)) {
+        clients[client.id].talkgroupNums = data.filterCode;
       //console.log("[" + data.shortName.toLowerCase() + "] WebSocket Updating - Client: " + client.id + " code set to: " + data.filterCode + " type set to: " + data.filterType + " TGS: " + clients[client.id].talkgroupNums);
     } else {
       console.error("Error - Socket.io [Start] either client not found or no Short Name");

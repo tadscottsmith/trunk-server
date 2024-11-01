@@ -23,7 +23,7 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   process.nextTick( async () => {
-  if (!req.file || (path.extname(req.file.originalname)) != '.m4a') {
+  if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {
     console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
     res.status(500);
     res.send("Error, invalid filename:\n");
@@ -34,7 +34,7 @@ exports.upload = async function (req, res, next) {
   let item = null;
 
   try {
-    item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
+    item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup", "autoPopulateTalkgroup"]);
   } catch (err) {
     console.warn("[" + req.params.shortName + "] Error /:shortName/upload - Error: " + err);
     res.status(500);
@@ -65,6 +65,23 @@ exports.upload = async function (req, res, next) {
   var startTime = req.body.start_time;
   var emergency = parseInt(req.body.emergency);
 
+  console.log("[" + shortName + "] Auto Populate Talkgroup: " + item.autoPopulateTalkgroup);
+
+  if (item.autoPopulateTalkgroup){
+    talkgroupExists = await Talkgroup.exists({
+      'shortName': shortName,
+      'num': talkgroupNum
+    });
+    
+    if(!talkgroupExists){
+      console.log("[" + shortName + "] Auto Populate Talkgroup Exists [" + talkgroupNum + "]: FALSE");
+    }
+    else{
+      console.log("[" + shortName + "] Auto Populate Talkgroup Exists [" + talkgroupNum + "]: TRUE");
+    }
+    
+
+  }
 
   if (item.ignoreUnknownTalkgroup == true) {
     talkgroupExists = await Talkgroup.exists({
@@ -86,6 +103,20 @@ exports.upload = async function (req, res, next) {
 
     }
   }
+
+  patches = [];
+
+  let req_patches;
+  req_patches = req.body.patches;
+
+  if(typeof req_patches != "undefined"){
+    var split_patches = req_patches.replace("[","").replace("]","").split(",");
+    
+    for (var patch in split_patches){
+      patches.push(split_patches[patch]);
+    } 
+  }
+    
   // Add in an API Key check
 
   let errorCount = parseInt(req.body.error_count);
@@ -111,11 +142,17 @@ exports.upload = async function (req, res, next) {
   res.status(200).end();
 
   var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
-  var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + ".m4a";
+  var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
+  //console.warn("Object Key" + object_key);
 
   var endpoint = s3_endpoint;
   var bucket = s3_bucket;
   var url = s3_endpoint + "/" + s3_bucket + "/" + object_key;
+  url = "https://media.spscan.ddnsfree.com/" + object_key;
+  
+  // console.warn("S3 Endpoint: " + endpoint);
+  // console.warn("S3 Bucket: " + bucket);
+  // console.warn("S3 URL: " + url);
 
   var call = new Call({
     shortName: shortName,
@@ -124,13 +161,14 @@ exports.upload = async function (req, res, next) {
     endpoint: endpoint,
     bucket: bucket,
     time: time,
-    name: talkgroupNum + "-" + startTime + ".m4a",
+    name: talkgroupNum + "-" + startTime + ".mp3",
     freq: freq,
     errorCount: errorCount,
     spikeCount: spikeCount,
     url: url,
     emergency: emergency,
     path: local_path,
+    patches: patches,
     srcList: srcList,
     len: -1
   });

@@ -20,6 +20,9 @@ export function useCallLink(currentCall) {
             case 2:
                 search = `filter-type=talkgroup&filter-code=${filterTalkgroups}&`;
                 break;
+            case 3:
+                search = `filter-type=unit&filter-code=${filterTalkgroups}&`;
+                break;
             default:
             case 0:
                 break;

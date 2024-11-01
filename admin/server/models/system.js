@@ -17,6 +17,7 @@ var systemSchema = mongoose.Schema({
 		default: true
 	},
   ignoreUnknownTalkgroup : Boolean,
+  autoPopulateTalkgroup : Boolean,
   active: {type: Boolean, default: false},
   lastActive: Date,
   userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},

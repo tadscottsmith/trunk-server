@@ -23,6 +23,7 @@ function CallInfo(props) {
   let talkgroupNum = "-";
   let callDownload = "";
   let callTweet = "";
+  let patches = "";
   if (props.call) {
     const currentCall = props.call;
     var time = new Date(currentCall.time);
@@ -33,6 +34,7 @@ function CallInfo(props) {
       callFreq = Math.round(freq * 1000) / 1000;
     }
 
+    patches = currentCall.patches;
     srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
@@ -61,6 +63,10 @@ function CallInfo(props) {
               <Statistic size='small'>
                 <Statistic.Label>Talkgroup</Statistic.Label>
                 <Statistic.Value>{talkgroupNum}</Statistic.Value>
+              </Statistic>
+              <Statistic size='small'>
+                <Statistic.Label>Patches</Statistic.Label>
+                <Statistic.Value>{patches}</Statistic.Value>
               </Statistic>
 
               <List divided verticalAlign='middle'>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../../features/callPlayer/callPlayerSlice";
+import { setGroupFilter, setTalkgroupFilter, setUnitFilter, setAllFilter, setStarredFilter } from "../../features/callPlayer/callPlayerSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -51,6 +51,14 @@ function FilterModal(props) {
           props.onClose(false);
         }
         break;
+      case 3:
+        if (selectedTalkgroup) {
+          dispatch(setUnitFilter(selectedTalkgroup))
+          props.onClose(true);
+        } else {
+          props.onClose(false);
+        }
+          break;
       default:
       case 0:
         dispatch(setAllFilter());
@@ -106,7 +114,7 @@ function FilterModal(props) {
       menuItem: 'Groups', render: () => {
         return (
           <Tab.Pane attached={false}>
-            <Dropdown placeholder='Groups' fluid selection options={groupList} value={selectedGroup} name='selectedGroup' onChange={handleGroupChange} />
+            <Dropdown placeholder='Groups' fluid search selection options={groupList} value={selectedGroup} name='selectedGroup' onChange={handleGroupChange} />
 
           </Tab.Pane>
         )
@@ -116,7 +124,7 @@ function FilterModal(props) {
       menuItem: 'Talkgroups', render: () => {
         return (
           <Tab.Pane attached={false}>
-            <Dropdown placeholder='Talkgroups' fluid multiple selection options={talkgroupList} value={selectedTalkgroup} name='selectedTalkgroup' onChange={handleTalkgroupChange} />
+            <Dropdown placeholder='Talkgroups' fluid multiple search selection options={talkgroupList} value={selectedTalkgroup} name='selectedTalkgroup' onChange={handleTalkgroupChange} />
           </Tab.Pane>
         )
       }

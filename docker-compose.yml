@@ -1,5 +1,21 @@
 version: "3"
 services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - node
+      - proxy
+    restart: always
+    volumes:
+      - ${PWD}/data/media:/data
+    environment:
+      MINIO_ROOT_USER: masoud
+      MINIO_ROOT_PASSWORD: Strong#Pass#2022
+    command: server --console-address ":9001" /data
+
   nginx:
     build:
       context: ./nginx-proxy
@@ -14,6 +30,7 @@ services:
       - "80:80"
       - "443:443"
       - "5602:5602"
+      - "8000:8000"
     restart: always
     volumes:
       - ${PWD}/data/log/syslog:/var/log/syslog
@@ -176,3 +193,4 @@ services:
 networks:
   proxy:
   node:
+

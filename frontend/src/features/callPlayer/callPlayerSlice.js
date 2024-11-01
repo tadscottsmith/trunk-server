@@ -9,6 +9,7 @@ const initialState = {
   newestCallTime: now,
   filterType: 0,
   filterTalkgroups: [],
+  filterUnits: [],
   filterGroupId: false,
   filterDate: false,
   filterStarred: false,
@@ -72,6 +73,7 @@ export const callPlayerSlice = createSlice({
       state.filterStarred = !action.payload.filterStarred ? false : action.payload.filterStarred;
       state.filterType = !action.payload.filterType ? 0 : action.payload.filterType;
       state.filterTalkgroups = !action.payload.filterTalkgroups ? [] : action.payload.filterTalkgroups;
+      state.filterUnits = !action.payload.filterUnits ? [] : action.payload.filterUnits;
       state.filterGroupId = !action.payload.filterGroupId ? false : action.payload.filterGroupId;
       state.filterDate = !action.payload.filterDate ? 0 : action.payload.filterDate;
       state.filterCallId = !action.payload.filterCallId ? false : action.payload.filterCallId;
@@ -110,12 +112,17 @@ export const callPlayerSlice = createSlice({
       state.filterTalkgroups = action.payload;
       state.filterGroupId = 0;
     },
+    setUnitFilter: (state, action) => {
+      state.filterType = 3;
+      state.filterTalkgroups = action.payload;
+      state.filterGroupId = 0;
+    },
 
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter, setUnitFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

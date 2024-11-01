@@ -114,6 +114,10 @@ function Calls(props) {
         filter.type = "talkgroup";
         filter.code = filterTalkgroups
         break;
+      case 3:
+        filter.type = "unit";
+        filter.code = filterTalkgroups
+        break;
       default:
       case 0:
         filter.type = "all";
@@ -168,6 +172,9 @@ function Calls(props) {
         break;
       case 2:
         search = search + `filter-type=talkgroup&filter-code=${filterTalkgroups}`;
+        break;
+      case 3:
+        search = search + `filter-type=unit&filter-code=${filterTalkgroups}`;
         break;
       default:
       case 0:
@@ -311,6 +318,13 @@ function Calls(props) {
         filter.filterType = 2;
         filter.filterTalkgroups = tg;
       }
+
+      // The Filter is a Unit/Src
+      if (uri['filter-type'] === 'unit') {
+        const tg = uri["filter-code"].split(',').map(Number);
+        filter.filterType = 3;
+        filter.filterTalkgroups = tg;
+      }
     }
 
     dispatch(setFilter(filter));
@@ -393,6 +407,9 @@ function Calls(props) {
 
     case 2:
       filterLabel = "Talkgroups"
+      break;
+    case 3:
+      filterLabel = "Unit"
       break;
     default:
     case 0:
